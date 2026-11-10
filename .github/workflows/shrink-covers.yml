@@ -1,0 +1,20 @@
+name: shrink-covers
+on:
+  workflow_dispatch:
+jobs:
+  shrink:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: pip
+        run: pip install pillow
+      - name: run shrink
+        run: python3 shrink_upload.py
+      - name: upload map
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: map2
+          path: |
+            /tmp/imgsmall/map2.txt
+            /tmp/imgsmall/map2.txt.fail
