@@ -17,7 +17,7 @@ jobs:
           mkdir -p img
           ok=0; skip=0; fail=0
           while IFS= read -r f; do
-            [ -z "$f" ] \&\& continue
+            if [ -z "$f" ]; then continue; fi
             if [ -f "img/$f" ]; then skip=$((skip+1)); continue; fi
             if curl -fsSL --retry 3 --retry-delay 2 -o "img/$f" "$SB/storage/v1/object/public/tb-packs/$f"; then
               ok=$((ok+1))
