@@ -9,36 +9,5 @@ jobs:
     timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
-      - name: Upload images to freeimage.host
-        env:
-          SB: https://rkhdkoewhwjtzxpjpjim.supabase.co
-          FIKEY: 6d207e02198a847aa98d0a2a901485a5
-        run: |
-          set -uo pipefail
-          touch out/map.txt 2>/dev/null || (mkdir -p out && touch out/map.txt)
-          up_one() {
-            f="$1"
-            line=$(grep -m1 -F "$f " out/map.txt || true)
-            if [ -n "$line" ]; then return 0; fi
-            resp=$(curl -s --max-time 150 -X POST "https://freeimage.host/api/1/upload" -F "key=$FIKEY" -F "format=json" -F "source=$SB/storage/v1/object/public/tb-packs/$f" || true)
-            url=$(printf '%s' "$resp" | python3 -c "import json,sys
-try:
-    print(json.load(sys.stdin).get('image',{}).get('url','') or '')
-except Exception:
-    print('')" 2>/dev/null)
-            if [ -n "$url" ]; then
-              echo "$f $url" >> out/map.txt
-            else
-              echo "FAIL $f $(printf '%s' "$resp" | head -c 90)"
-            fi
-            sleep 0.4
-          }
-          export -f up_one
-          export SB FIKEY
-          xargs -a tolist.txt -P 3 -I {} bash -c 'up_one "$@"' _ {}
-          echo "map 条数: $(wc -l < out/map.txt)"
-          git config user.name "themebox-sync"
-          git config user.email "sync@themebox.local"
-          git add out/map.txt
-          git commit -m "freeimage map ($(wc -l < out/map.txt))" || echo "no changes"
-          git push || true
+      - name: Upload images to freeimage
+        run: bash upload_fi.sh
