@@ -1,0 +1,34 @@
+name: sync-assets
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull images from Supabase and commit
+        env:
+          SB: https://rkhdkoewhwjtzxpjpjim.supabase.co
+        run: |
+          set -euo pipefail
+          mkdir -p img
+          ok=0; skip=0; fail=0
+          while IFS= read -r f; do
+            [ -z "$f" ] \&\& continue
+            if [ -f "img/$f" ]; then skip=$((skip+1)); continue; fi
+            if curl -fsSL --retry 3 --retry-delay 2 -o "img/$f" "$SB/storage/v1/object/public/tb-packs/$f"; then
+              ok=$((ok+1))
+            else
+              echo "FAIL $f"; fail=$((fail+1))
+            fi
+          done < filelist.txt
+          echo "fetched ok=$ok skip=$skip fail=$fail"
+          git config user.name "themebox-sync"
+          git config user.email "sync@themebox.local"
+          git add img
+          git commit -m "sync assets ($ok new)" || echo "no changes"
+          git push
+          echo "DONE ok=$ok fail=$fail"
