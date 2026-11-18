@@ -24,4 +24,8 @@ git config user.name themebox-sync
 git config user.email sync@themebox.local
 git add out/map.txt
 git commit -m "freeimage map $(wc -l < out/map.txt)" || true
-git push || true
+for i in 1 2 3 4 5; do
+  git pull --rebase origin main >/dev/null 2>&1 || true
+  if git push; then break; fi
+  sleep 6
+done
