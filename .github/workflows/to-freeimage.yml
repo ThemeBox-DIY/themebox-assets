@@ -1,6 +1,8 @@
 name: to-freeimage
 on:
   workflow_dispatch: {}
+  schedule:
+    - cron: '41 */2 * * *'
 permissions:
   contents: write
 jobs:
