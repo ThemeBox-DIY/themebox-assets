@@ -1,0 +1,19 @@
+name: test-freeimage
+on:
+  workflow_dispatch: {}
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test upload
+        run: |
+          echo "== downloading source =="
+          curl -s -o /tmp/a.png "https://rkhdkoewhwjtzxpjpjim.supabase.co/storage/v1/object/public/tb-packs/cov-IDmU08mbb9-cover.png"
+          ls -la /tmp/a.png
+          echo "== upload attempt (same key as pipeline) =="
+          resp=$(curl -s --max-time 120 -X POST "https://freeimage.host/api/1/upload" -F "key=6d207e02198a847aa98d0a2a901485a5" -F "format=json" -F "source=@/tmp/a.png")
+          echo "RESP: $resp"
+          echo "$resp" | grep -q '"url"' && echo "RESULT: UPLOAD_OK" || echo "RESULT: UPLOAD_FAIL"
+          echo "== also test one from source URL =="
+          resp2=$(curl -s --max-time 120 -X POST "https://freeimage.host/api/1/upload" -F "key=6d207e02198a847aa98d0a2a901485a5" -F "format=json" -F "source=https://rkhdkoewhwjtzxpjpjim.supabase.co/storage/v1/object/public/tb-packs/cov-IDmU08mbb9-cover.png")
+          echo "RESP2: $resp2"
